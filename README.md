@@ -30,6 +30,7 @@ An n8n community node for monitoring Excel file changes with advanced stability 
 
 ### Core Capabilities
 
+#### File Monitoring Mode
 - ✅ **Precise Triggering**: Avoids multiple triggers during Excel's save process with built-in debouncing
 - ✅ **Excel Temp File Filtering**: Automatically ignores Excel's temporary lock files (`~$*.xlsx`)
 - ✅ **File Lock Detection**: Ensures files are fully accessible before triggering workflow
@@ -37,6 +38,14 @@ An n8n community node for monitoring Excel file changes with advanced stability 
 - ✅ **NAS Compatibility**: Polling mode for Synology, QNAP, and other NAS devices
 - ✅ **Flexible Pattern Matching**: Support multiple file patterns with wildcards
 - ✅ **Customizable Events**: Choose between file added, changed, or both
+
+#### Content Monitoring Mode
+- ✅ **Row Tracking**: Monitor data row changes in a single Excel file
+- ✅ **Change Detection**: Automatically detect added, updated, and deleted rows
+- ✅ **Status Field**: Each changed row includes a status field (add/update/delete)
+- ✅ **Custom Intervals**: Flexible check intervals from 5-3600 seconds
+- ✅ **ExcelJS Integration**: Accurate .xlsx file reading with ExcelJS
+- ✅ **Smart Comparison**: Advanced comparison options (case sensitivity, whitespace handling)
 
 ### Taiwan SME Optimized / 台灣中小企業優化
 
@@ -84,14 +93,27 @@ docker run -it --rm \
 
 - n8n version 1.0.0 or higher
 - Node.js version 18.x or higher
-- File system access to the folder you want to monitor
+- File system access to the folder or file you want to monitor
 - For network drives: Ensure the n8n process has proper network permissions
+- Content Mode only supports .xlsx file format (Excel 2007+)
 
 ## Node Configuration
 
-### Basic Settings
+### Monitoring Mode Selection
 
-#### Watch Path
+#### Monitoring Mode
+**Type**: Options (Required)  
+**Options**:
+- **Watch Files**: Monitor file additions or modifications in a folder
+- **Watch Content**: Monitor data row changes in a specific Excel file
+
+**Default**: `Watch Files`
+
+---
+
+### File Monitoring Mode Settings
+
+#### Folder Path
 **Type**: String (Required)  
 **Default**: `C:\Work\Orders`
 
@@ -104,12 +126,14 @@ The folder path to monitor for file changes. Supports:
 
 #### File Pattern
 **Type**: String  
-**Default**: `*.xlsx,*.xls,*.csv`
+**Default**: `*.xlsx`
 
 Comma-separated file patterns to match. Examples:
-- `*.xlsx` - Only Excel 2007+ files
-- `*order*.xlsx,*invoice*.xls` - Files containing "order" or "invoice"
-- `2026_*.csv` - CSV files starting with "2026_"
+- `*.xlsx` - All Excel files
+- `*order*.xlsx` - Files containing "order"
+- `2026_*.xlsx` - Files starting with "2026_"
+
+**Note**: Content Mode only supports .xlsx format
 
 以逗號分隔的檔案篩選模式。
 
@@ -188,7 +212,75 @@ Monitor subdirectories recursively. When enabled, all subdirectories will also b
 
 是否遞迴監控子資料夾。
 
+---
+
+### Content Monitoring Mode Settings
+
+#### File Path
+**Type**: String (Required)  
+**Default**: `C:\Work\Orders\2024_orders.xlsx`
+
+Full path to the Excel file to monitor for content changes.
+
+#### Sheet Name
+**Type**: String  
+**Default**: Empty (uses first sheet)
+
+Name of the worksheet to monitor. Leave empty to use the first sheet.
+
+#### Primary Key Column
+**Type**: String (Required)  
+**Default**: `A`
+
+Column letter used to identify rows (e.g., A, B, C). This column should contain unique identifiers (like Order ID, Product Code).
+
+#### Check Interval
+**Type**: Number (seconds)  
+**Default**: `30`  
+**Range**: 5-3600 seconds
+
+How often to check for content changes.
+
+**Recommended values:**
+- Real-time monitoring: 10-30 seconds
+- Normal monitoring: 60-300 seconds
+- Low-frequency: 300-3600 seconds
+
+#### Detect Changes
+**Type**: Multi-select (Required)  
+**Options**:
+- **Row Added**: Detect newly added rows
+- **Row Updated**: Detect updated rows
+- **Row Deleted**: Detect deleted rows
+
+**Default**: All selected
+
+#### Header Row Number
+**Type**: Number  
+**Default**: `1`
+
+Row number containing column headers (usually row 1).
+
+#### Advanced Content Options
+
+##### Ignore Empty Rows
+**Default**: `true`
+
+Ignore rows where the primary key column is empty.
+
+##### Case Sensitive Comparison
+**Default**: `false`
+
+Whether to compare cell values case-sensitively.
+
+##### Trim Whitespace
+**Default**: `true`
+
+Automatically trim whitespace from cell values before comparison.
+
 ## Output Data Structure
+
+### File Monitoring Mode Output
 
 When a file change is detected, the node outputs the following JSON structure:
 
@@ -222,7 +314,58 @@ When a file change is detected, the node outputs the following JSON structure:
 | `stats.last_modified` | String | ISO 8601 timestamp of last modification |
 | `event` | String | Event type: `"add"` or `"change"` |
 
+### Content Monitoring Mode Output
+
+When row changes are detected, the node outputs an array of changed rows, each with a `status` field:
+
+```json
+[
+  {
+    "Order ID": "ORD-2024-001",
+    "Customer": "Tech Corp",
+    "Product": "Laptop",
+    "Quantity": "5",
+    "Amount": "150000",
+    "Status": "Pending",
+    "status": "add"
+  },
+  {
+    "Order ID": "ORD-2024-002",
+    "Customer": "Manufacturing Ltd",
+    "Product": "Server",
+    "Quantity": "2",
+    "Amount": "300000",
+    "Status": "Completed",
+    "status": "update"
+  },
+  {
+    "Order ID": "ORD-2024-003",
+    "Customer": "Retail Store",
+    "Product": "Printer",
+    "Quantity": "10",
+    "Amount": "50000",
+    "Status": "Cancelled",
+    "status": "delete"
+  }
+]
+```
+
+#### Status Field Values
+
+| Status Value | Description |
+|-------------|-------------|
+| `"add"` | Row was added |
+| `"update"` | Row was updated (content changed) |
+| `"delete"` | Row was deleted |
+
+**Features:**
+- Each output is a complete data row with all Excel columns
+- Additional `status` field indicates change type
+- Direct access in n8n using `{{ $json.OrderID }}` and `{{ $json.status }}`
+
 ## Usage Examples
+
+### File Monitoring Examples
 
 ### Example 1: Basic Excel File Monitoring
 
@@ -295,6 +438,7 @@ Monitor a folder and all its subdirectories:
 ```json
 {
   "parameters": {
+    "mode": "file",
     "watchPath": "C:\\Work\\AllOrders",
     "filePattern": "*.xlsx",
     "triggerEvents": ["add"],
@@ -304,6 +448,79 @@ Monitor a folder and all its subdirectories:
     }
   }
 }
+```
+
+### Content Monitoring Examples
+
+### Example 5: Monitor Order Status Changes
+
+Monitor order Excel for row changes and send notifications:
+
+```json
+{
+  "nodes": [
+    {
+      "name": "Excel Content Watcher",
+      "type": "n8n-nodes-excel-watcher.excelWatcher",
+      "parameters": {
+        "mode": "content",
+        "filePath": "C:\\Work\\Orders\\2024_orders.xlsx",
+        "sheetName": "Order Details",
+        "primaryKeyColumn": "A",
+        "checkInterval": 30,
+        "detectChanges": ["add", "update", "delete"]
+      }
+    },
+    {
+      "name": "Switch by Status",
+      "type": "n8n-nodes-base.switch",
+      "parameters": {
+        "dataPropertyName": "status",
+        "rules": {
+          "values": [
+            {"value": "add", "output": 0},
+            {"value": "update", "output": 1},
+            {"value": "delete", "output": 2}
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+
+### Example 6: Filter Specific Status Changes
+
+Only process newly added orders:
+
+```json
+{
+  "parameters": {
+    "mode": "content",
+    "filePath": "\\\\NAS\\Shared\\products.xlsx",
+    "primaryKeyColumn": "B",
+    "checkInterval": 60,
+    "detectChanges": ["add"],
+    "advancedSettings": {
+      "caseSensitive": false,
+      "trimWhitespace": true
+    }
+  }
+}
+```
+
+### Example 7: Access Changed Data
+
+Access changed data in n8n workflows:
+
+```javascript
+// In Code node or expressions
+Order ID: {{ $json["Order ID"] }}
+Customer: {{ $json.Customer }}
+Change Type: {{ $json.status }}
+
+// Determine change type
+{{ $json.status === 'add' ? 'New Order' : $json.status === 'update' ? 'Order Updated' : 'Order Deleted' }}
 ```
 
 ## Taiwan SME Specific Features
@@ -436,6 +653,8 @@ npm run test:coverage
 **Initial Release** 🎉
 
 #### Features
+
+**File Monitoring Mode**
 - ✨ Excel file monitoring with stability checking
 - ✨ Automatic Excel temp file filtering (`~$` files)
 - ✨ File lock detection with retry mechanism
@@ -446,32 +665,66 @@ npm run test:coverage
 - ✨ Recursive directory monitoring
 - ✨ Selective event triggering (add/change)
 
+**Content Monitoring Mode**
+- ✨ Single file data row change monitoring
+- ✨ Automatic detection of added, updated, and deleted rows
+- ✨ Each row automatically includes status field (add/update/delete)
+- ✨ Custom check intervals (5-3600 seconds)
+- ✨ Accurate .xlsx file reading with ExcelJS
+- ✨ Smart comparison options (case sensitivity, whitespace handling)
+- ✨ Snapshot mechanism and performance optimization
+
 #### Node Configuration
-- Basic settings:
-  - Watch Path (required)
+- Monitoring Mode Selection:
+  - File Monitoring (Watch Files)
+  - Content Monitoring (Watch Content)
+
+- File Monitoring Settings:
+  - Folder Path (required)
   - File Pattern
   - Trigger Events (required)
   - Ignore Temp Files
   - Stability Time
 
-- Advanced settings:
-  - Use Polling
+- Content Monitoring Settings:
+  - File Path (required)
+  - Sheet Name
+  - Primary Key Column (required)
+  - Check Interval
+  - Detect Changes (required)
+  - Header Row Number
+
+- Advanced Settings:
+  - Use Polling (File Mode)
   - Polling Interval
   - Wait For File Access
-  - Recursive
+  - Recursive (File Mode)
+  - Ignore Empty Rows (Content Mode)
+  - Case Sensitive (Content Mode)
+  - Trim Whitespace (Content Mode)
 
 #### Output Structure
+
+**File Monitoring Mode:**
 - Comprehensive file information
 - File statistics (size, modification time)
 - Event type indication
 
+**Content Monitoring Mode:**
+- Array of changed rows
+- Each row contains all Excel columns
+- Additional status field (add/update/delete)
+
 #### Testing
-- 23 configuration tests (100% pass rate)
+- 50 tests all passing (100% pass rate)
+- File monitoring mode tests (23 items)
+- Content monitoring mode tests (27 items)
 - Full parameter validation
 - Taiwan SME requirement verification
 
 #### Documentation
 - Complete README with examples
+- Output examples documentation
 - Test documentation
 - Troubleshooting guide
 

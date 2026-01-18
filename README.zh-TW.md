@@ -32,6 +32,7 @@ An n8n community node for monitoring Excel file changes with advanced stability 
 
 ### 核心功能
 
+#### 檔案監控模式
 - ✅ **精準觸發**：內建防抖動機制，避免 Excel 存檔過程中的多次觸發
 - ✅ **Excel 暫存檔過濾**：自動忽略 Excel 的暫存鎖定檔案（`~$*.xlsx`）
 - ✅ **檔案鎖定偵測**：確保檔案完全可存取後才觸發工作流程
@@ -39,6 +40,14 @@ An n8n community node for monitoring Excel file changes with advanced stability 
 - ✅ **NAS 相容性**：支援 Synology、QNAP 等 NAS 設備的輪詢模式
 - ✅ **彈性模式比對**：支援多個萬用字元檔案模式
 - ✅ **可自訂事件**：選擇觸發於檔案新增、變更或兩者
+
+#### 內容監控模式（Content Mode）
+- ✅ **資料列追蹤**：監控單一 Excel 檔案的資料列變更
+- ✅ **變更偵測**：自動偵測新增、更新、刪除的資料列
+- ✅ **Status 欄位**：每筆變更資料自動加上 status 欄位（add/update/delete）
+- ✅ **自訂檢查間隔**：彈性設定 5-3600 秒的檢查頻率
+- ✅ **ExcelJS 整合**：使用 ExcelJS 精確讀取 .xlsx 檔案內容
+- ✅ **智能比對**：支援大小寫、空白處理等進階比對選項
 
 ### 台灣中小企業優化
 
@@ -86,14 +95,27 @@ docker run -it --rm \
 
 - n8n 版本 1.0.0 或更高
 - Node.js 版本 18.x 或更高
-- 對要監控資料夾的檔案系統存取權限
+- 對要監控資料夾或檔案的檔案系統存取權限
 - 對於網路磁碟機：確保 n8n 程序具有適當的網路權限
+- Content Mode 僅支援 .xlsx 檔案格式（Excel 2007+）
 
 ## 節點設定
 
-### 基本設定
+### 監控模式選擇
 
-#### 監控路徑（Watch Path）
+#### 監控模式（Monitoring Mode）
+**類型**：選項（必填）  
+**選項**：
+- **Watch Files（檔案監控）**：監控資料夾中的檔案新增或修改
+- **Watch Content（內容監控）**：監控單一 Excel 檔案的資料列變更
+
+**預設值**：`Watch Files`
+
+---
+
+### 檔案監控模式設定
+
+#### 資料夾路徑（Folder Path）
 **類型**：字串（必填）  
 **預設值**：`C:\Work\Orders`
 
@@ -104,12 +126,14 @@ docker run -it --rm \
 
 #### 檔案模式（File Pattern）
 **類型**：字串  
-**預設值**：`*.xlsx,*.xls,*.csv`
+**預設值**：`*.xlsx`
 
 逗號分隔的檔案模式。範例：
-- `*.xlsx` - 僅 Excel 2007+ 檔案
-- `*order*.xlsx,*invoice*.xls` - 包含 "order" 或 "invoice" 的檔案
-- `2026_*.csv` - 以 "2026_" 開頭的 CSV 檔案
+- `*.xlsx` - 所有 Excel 檔案
+- `*order*.xlsx` - 包含 "order" 的檔案
+- `2026_*.xlsx` - 以 "2026_" 開頭的檔案
+
+**注意**：Content Mode 僅支援 .xlsx 格式
 
 #### 觸發事件（Trigger Events）
 **類型**：多選（必填）  
@@ -172,7 +196,75 @@ docker run -it --rm \
 
 遞迴監控子資料夾。啟用時，所有子資料夾也會被監控。
 
+---
+
+### 內容監控模式設定
+
+#### 檔案路徑（File Path）
+**類型**：字串（必填）  
+**預設值**：`C:\Work\Orders\2024_orders.xlsx`
+
+要監控內容變更的 Excel 檔案完整路徑。
+
+#### 工作表名稱（Sheet Name）
+**類型**：字串  
+**預設值**：空字串（使用第一個工作表）
+
+要監控的工作表名稱。留空則監控第一個工作表。
+
+#### 主鍵欄位（Primary Key Column）
+**類型**：字串（必填）  
+**預設值**：`A`
+
+用於識別資料列的欄位字母（例如：A、B、C）。此欄位應包含唯一識別值（如訂單編號、產品代碼）。
+
+#### 檢查間隔（Check Interval）
+**類型**：數字（秒）  
+**預設值**：`30`  
+**範圍**：5-3600 秒
+
+檢查檔案內容變更的頻率。
+
+**建議值：**
+- 即時監控：10-30 秒
+- 一般監控：60-300 秒
+- 低頻監控：300-3600 秒
+
+#### 偵測變更類型（Detect Changes）
+**類型**：多選（必填）  
+**選項**：
+- **Row Added（資料列新增）**：偵測新增的資料列
+- **Row Updated（資料列更新）**：偵測更新的資料列
+- **Row Deleted（資料列刪除）**：偵測刪除的資料列
+
+**預設值**：全部選取
+
+#### 標題列編號（Header Row Number）
+**類型**：數字  
+**預設值**：`1`
+
+包含欄位名稱的列編號（通常是第 1 列）。
+
+#### 進階內容選項
+
+##### 忽略空白列（Ignore Empty Rows）
+**預設值**：`true`
+
+忽略主鍵欄位為空的資料列。
+
+##### 區分大小寫（Case Sensitive Comparison）
+**預設值**：`false`
+
+比對資料時是否區分大小寫。
+
+##### 去除空白（Trim Whitespace）
+**預設值**：`true`
+
+比對前自動去除資料前後的空白。
+
 ## 輸出資料結構
+
+### 檔案監控模式輸出
 
 當偵測到檔案變更時，節點輸出以下 JSON 結構：
 
@@ -206,7 +298,58 @@ docker run -it --rm \
 | `stats.last_modified` | 字串 | 最後修改時間（ISO 8601 格式） |
 | `event` | 字串 | 事件類型：`"add"` 或 `"change"` |
 
+### 內容監控模式輸出
+
+當偵測到資料列變更時，節點會輸出變更的資料列陣列，每列都包含 `status` 欄位：
+
+```json
+[
+  {
+    "訂單編號": "ORD-2024-001",
+    "客戶名稱": "台北科技公司",
+    "產品名稱": "筆記型電腦",
+    "數量": "5",
+    "金額": "150000",
+    "狀態": "待處理",
+    "status": "add"
+  },
+  {
+    "訂單編號": "ORD-2024-002",
+    "客戶名稱": "新竹製造廠",
+    "產品名稱": "伺服器",
+    "數量": "2",
+    "金額": "300000",
+    "狀態": "已完成",
+    "status": "update"
+  },
+  {
+    "訂單編號": "ORD-2024-003",
+    "客戶名稱": "台中零售店",
+    "產品名稱": "印表機",
+    "數量": "10",
+    "金額": "50000",
+    "狀態": "已取消",
+    "status": "delete"
+  }
+]
+```
+
+#### Status 欄位說明
+
+| Status 值 | 說明 |
+|----------|------|
+| `"add"` | 資料列為新增 |
+| `"update"` | 資料列已更新（內容有變更）|
+| `"delete"` | 資料列已刪除 |
+
+**特點：**
+- 每筆輸出都是完整的資料列，包含所有 Excel 欄位
+- 額外加上 `status` 欄位標示變更類型
+- 可直接在 n8n 中使用 `{{ $json.訂單編號 }}` 和 `{{ $json.status }}` 存取資料
+
 ## 使用範例
+
+### 檔案監控範例
 
 ### 範例 1：基本 Excel 檔案監控
 
@@ -279,6 +422,7 @@ docker run -it --rm \
 ```json
 {
   "parameters": {
+    "mode": "file",
     "watchPath": "C:\\Work\\AllOrders",
     "filePattern": "*.xlsx",
     "triggerEvents": ["add"],
@@ -288,6 +432,79 @@ docker run -it --rm \
     }
   }
 }
+```
+
+### 內容監控範例
+
+### 範例 5：監控訂單狀態變更
+
+監控訂單 Excel 的資料列變更並發送通知：
+
+```json
+{
+  "nodes": [
+    {
+      "name": "Excel Content Watcher",
+      "type": "n8n-nodes-excel-watcher.excelWatcher",
+      "parameters": {
+        "mode": "content",
+        "filePath": "C:\\Work\\Orders\\2024_orders.xlsx",
+        "sheetName": "訂單明細",
+        "primaryKeyColumn": "A",
+        "checkInterval": 30,
+        "detectChanges": ["add", "update", "delete"]
+      }
+    },
+    {
+      "name": "Switch by Status",
+      "type": "n8n-nodes-base.switch",
+      "parameters": {
+        "dataPropertyName": "status",
+        "rules": {
+          "values": [
+            {"value": "add", "output": 0},
+            {"value": "update", "output": 1},
+            {"value": "delete", "output": 2}
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+
+### 範例 6：過濾特定狀態的變更
+
+只處理新增的訂單：
+
+```json
+{
+  "parameters": {
+    "mode": "content",
+    "filePath": "\\\\NAS\\Shared\\products.xlsx",
+    "primaryKeyColumn": "B",
+    "checkInterval": 60,
+    "detectChanges": ["add"],
+    "advancedSettings": {
+      "caseSensitive": false,
+      "trimWhitespace": true
+    }
+  }
+}
+```
+
+### 範例 7：存取變更資料
+
+在 n8n 工作流程中存取變更的資料：
+
+```javascript
+// 在 Code 節點或表達式中
+訂單編號: {{ $json.訂單編號 }}
+客戶名稱: {{ $json.客戶名稱 }}
+變更類型: {{ $json.status }}
+
+// 判斷變更類型
+{{ $json.status === 'add' ? '新訂單' : $json.status === 'update' ? '訂單更新' : '訂單刪除' }}
 ```
 
 ## 台灣中小企業專屬功能
@@ -410,6 +627,8 @@ npm run test:coverage
 **初始發布** 🎉
 
 #### 功能
+
+**檔案監控模式**
 - ✨ Excel 檔案監控與穩定性檢查
 - ✨ 自動 Excel 暫存檔過濾（`~$` 檔案）
 - ✨ 具重試機制的檔案鎖定偵測
@@ -420,27 +639,60 @@ npm run test:coverage
 - ✨ 遞迴目錄監控
 - ✨ 選擇性事件觸發（新增/變更）
 
+**內容監控模式**
+- ✨ 單一檔案資料列變更監控
+- ✨ 自動偵測新增、更新、刪除的資料列
+- ✨ 每筆資料自動加上 status 欄位（add/update/delete）
+- ✨ 自訂檢查間隔（5-3600 秒）
+- ✨ 使用 ExcelJS 精確讀取 .xlsx 檔案
+- ✨ 智能比對選項（大小寫、空白處理）
+- ✨ 快照機制與效能優化
+
 #### 節點設定
-- 基本設定：
-  - 監控路徑（必填）
+- 監控模式選擇：
+  - 檔案監控（Watch Files）
+  - 內容監控（Watch Content）
+
+- 檔案監控設定：
+  - 資料夾路徑（必填）
   - 檔案模式
   - 觸發事件（必填）
   - 忽略暫存檔
   - 穩定時間
 
+- 內容監控設定：
+  - 檔案路徑（必填）
+  - 工作表名稱
+  - 主鍵欄位（必填）
+  - 檢查間隔
+  - 偵測變更類型（必填）
+  - 標題列編號
+
 - 進階設定：
-  - 使用輪詢
+  - 使用輪詢（檔案模式）
   - 輪詢間隔
   - 等待檔案可存取
-  - 遞迴監控
+  - 遞迴監控（檔案模式）
+  - 忽略空白列（內容模式）
+  - 區分大小寫（內容模式）
+  - 去除空白（內容模式）
 
 #### 輸出結構
+
+**檔案監控模式：**
 - 完整的檔案資訊
 - 檔案統計資料（大小、修改時間）
 - 事件類型指示
 
+**內容監控模式：**
+- 變更的資料列陣列
+- 每列包含所有 Excel 欄位
+- 額外的 status 欄位（add/update/delete）
+
 #### 測試
-- 23 個配置測試（100% 通過率）
+- 50 個測試全部通過（100% 通過率）
+- 檔案監控模式測試（23 項）
+- 內容監控模式測試（27 項）
 - 完整參數驗證
 - 台灣中小企業需求驗證
 

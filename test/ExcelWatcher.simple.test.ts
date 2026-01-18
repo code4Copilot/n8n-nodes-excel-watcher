@@ -9,7 +9,7 @@ describe('ExcelWatcher Node - Basic Tests', () => {
 
   describe('Node Configuration', () => {
     it('should have correct display name and basic properties', () => {
-      expect(excelWatcher.description.displayName).toBe('Excel File Watcher');
+      expect(excelWatcher.description.displayName).toBe('Excel Watcher');
       expect(excelWatcher.description.name).toBe('excelWatcher');
       expect(excelWatcher.description.version).toBe(1);
       expect(excelWatcher.description.group).toContain('trigger');
@@ -44,7 +44,7 @@ describe('ExcelWatcher Node - Basic Tests', () => {
 
     it('should have correct File Pattern default', () => {
       const filePatternProp = excelWatcher.description.properties.find((p: any) => p.name === 'filePattern');
-      expect(filePatternProp?.default).toBe('*.xlsx,*.xls,*.csv');
+      expect(filePatternProp?.default).toBe('*.xlsx');
     });
 
     it('should have Ignore Temp Files enabled by default', () => {
@@ -140,14 +140,13 @@ describe('ExcelWatcher Node - Basic Tests', () => {
       expect(defaultPath).toContain('\\');
     });
 
-    it('should support common Excel file formats', () => {
+    it('should support xlsx file format only', () => {
       const filePatternProp = excelWatcher.description.properties.find((p: any) => p.name === 'filePattern');
-      const patterns = (filePatternProp?.default as string).split(',');
+      const patterns = (filePatternProp?.default as string).split(',').map(p => p.trim());
       
-      // 確認支援常見格式
+      // 確認只支援 xlsx 格式
       expect(patterns).toContain('*.xlsx');
-      expect(patterns).toContain('*.xls');
-      expect(patterns).toContain('*.csv');
+      expect(patterns).toHaveLength(1);
     });
 
     it('should mention UNC path support in description', () => {
