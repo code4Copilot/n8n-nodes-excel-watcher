@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1768704361781" clover="3.2.0">
+  <project timestamp="1768704361781" name="All files">
+    <metrics statements="52" coveredstatements="5" conditionals="24" coveredconditionals="0" methods="12" coveredmethods="1" elements="88" coveredelements="6" complexity="0" loc="52" ncloc="52" packages="1" files="1" classes="1"/>
+    <file name="ExcelWatcher.node.ts" path="C:\n8n-nodes-excel-watcher\nodes\ExcelWatcher\ExcelWatcher.node.ts">
+      <metrics statements="52" coveredstatements="5" conditionals="24" coveredconditionals="0" methods="12" coveredmethods="1"/>
+      <line num="8" count="1" type="stmt"/>
+      <line num="9" count="1" type="stmt"/>
+      <line num="10" count="1" type="stmt"/>
+      <line num="12" count="1" type="stmt"/>
+      <line num="13" count="1" type="stmt"/>
+      <line num="124" count="0" type="stmt"/>
+      <line num="125" count="0" type="stmt"/>
+      <line num="126" count="0" type="stmt"/>
+      <line num="127" count="0" type="stmt"/>
+      <line num="128" count="0" type="stmt"/>
+      <line num="129" count="0" type="stmt"/>
+      <line num="131" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="132" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="133" count="0" type="cond" truecount="0" falsecount="4"/>
+      <line num="134" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="137" count="0" type="stmt"/>
+      <line num="138" count="0" type="stmt"/>
+      <line num="139" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="143" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="148" count="0" type="stmt"/>
+      <line num="149" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="151" count="0" type="stmt"/>
+      <line num="153" count="0" type="stmt"/>
+      <line num="154" count="0" type="stmt"/>
+      <line num="155" count="0" type="stmt"/>
+      <line num="157" count="0" type="stmt"/>
+      <line num="162" count="0" type="stmt"/>
+      <line num="163" count="0" type="stmt"/>
+      <line num="164" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="165" count="0" type="stmt"/>
+      <line num="167" count="0" type="stmt"/>
+      <line num="169" count="0" type="stmt"/>
+      <line num="173" count="0" type="stmt"/>
+      <line num="186" count="0" type="stmt"/>
+      <line num="187" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="188" count="0" type="stmt"/>
+      <line num="192" count="0" type="stmt"/>
+      <line num="193" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="194" count="0" type="stmt"/>
+      <line num="195" count="0" type="stmt"/>
+      <line num="198" count="0" type="stmt"/>
+      <line num="199" count="0" type="stmt"/>
+      <line num="200" count="0" type="stmt"/>
+      <line num="203" count="0" type="stmt"/>
+      <line num="218" count="0" type="stmt"/>
+      <line num="220" count="0" type="stmt"/>
+      <line num="225" count="0" type="stmt"/>
+      <line num="226" count="0" type="stmt"/>
+      <line num="227" count="0" type="stmt"/>
+      <line num="228" count="0" type="stmt"/>
+      <line num="232" count="0" type="stmt"/>
+      <line num="235" count="0" type="stmt"/>
+    </file>
+  </project>
+</coverage>

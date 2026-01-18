@@ -1,0 +1,28 @@
+# 依賴
+node_modules/
+package-lock.json
+
+# 建置輸出
+dist/
+*.js
+*.js.map
+*.d.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 系統檔案
+.DS_Store
+Thumbs.db
+
+# 日誌
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 環境變數
+.env
+.env.local

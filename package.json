@@ -1,0 +1,47 @@
+{
+  "name": "n8n-nodes-excel-watcher",
+  "version": "1.0.0",
+  "description": "n8n node for monitoring Excel file changes with stability checking",
+  "keywords": [
+    "n8n-community-node-package",
+    "excel",
+    "file-watcher",
+    "taiwan"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc && gulp build:icons",
+    "dev": "tsc --watch",
+    "test": "jest ExcelWatcher.simple.test.ts",
+    "test:all": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [],
+    "nodes": [
+      "dist/nodes/ExcelWatcher/ExcelWatcher.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/chokidar": "^1.7.5",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^18.16.0",
+    "gulp": "^5.0.1",
+    "jest": "^30.2.0",
+    "n8n-workflow": "^1.0.0",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "chokidar": "^3.5.3"
+  },
+  "overrides": {
+    "form-data": "^4.0.4"
+  }
+}
