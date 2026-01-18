@@ -591,7 +591,7 @@ Polling mode ensures triggers work even when network file system events are unre
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/n8n-nodes-excel-watcher.git
+git clone https://github.com/code4Copilot/n8n-nodes-excel-watcher.git
 cd n8n-nodes-excel-watcher
 
 # Install dependencies
@@ -751,7 +751,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 If you encounter any issues or have questions:
 
 1. Check the [Troubleshooting](#troubleshooting) section
-2. Review [existing issues](https://github.com/yourusername/n8n-nodes-excel-watcher/issues)
+2. Review [existing issues](https://github.com/code4Copilot/n8n-nodes-excel-watcher/issues)
 3. Create a new issue with:
    - Node configuration
    - Error messages

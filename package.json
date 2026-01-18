@@ -9,6 +9,18 @@
     "taiwan"
   ],
   "license": "MIT",
+  "author": {
+    "name": "HueyAn Chen",
+    "email": "hueyan.chen@gmail.com"
+  },
+  "homepage": "https://github.com/code4Copilot/n8n-nodes-excel-watcher#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/code4Copilot/n8n-nodes-excel-watcher.git"
+  },
+  "bugs": {
+    "url": "https://github.com/code4Copilot/n8n-nodes-excel-watcher/issues"
+  },
   "main": "index.js",
   "scripts": {
     "build": "tsc && gulp build:icons",

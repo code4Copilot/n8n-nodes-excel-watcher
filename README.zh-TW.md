@@ -565,7 +565,7 @@ docker run -it --rm \
 
 ```bash
 # 複製儲存庫
-git clone https://github.com/yourusername/n8n-nodes-excel-watcher.git
+git clone https://github.com/code4Copilot/n8n-nodes-excel-watcher.git
 cd n8n-nodes-excel-watcher
 
 # 安裝相依套件
@@ -725,7 +725,7 @@ npm run test:coverage
 如果遇到任何問題或有疑問：
 
 1. 查看[疑難排解](#疑難排解)章節
-2. 檢視[現有問題](https://github.com/yourusername/n8n-nodes-excel-watcher/issues)
+2. 檢視[現有問題](https://github.com/code4Copilot/n8n-nodes-excel-watcher/issues)
 3. 建立新問題並包含：
    - 節點設定
    - 錯誤訊息
