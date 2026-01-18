@@ -5,7 +5,7 @@
     "lib": ["ES2019"],
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": "./nodes",
+    "rootDir": "./",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
