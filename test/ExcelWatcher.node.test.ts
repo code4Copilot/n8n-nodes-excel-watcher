@@ -4,6 +4,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ITriggerFunctions } from 'n8n-workflow';
 
+// Mock chokidar at module level
+jest.mock('chokidar');
+
 describe('ExcelWatcher Node', () => {
   let excelWatcher: ExcelWatcher;
   let mockTriggerFunctions: Partial<ITriggerFunctions>;
@@ -12,13 +15,6 @@ describe('ExcelWatcher Node', () => {
   let watchSpy: jest.SpyInstance;
   let openSpy: jest.SpyInstance;
   let statSpy: jest.SpyInstance;
-
-  beforeAll(() => {
-    // Create spies once
-    watchSpy = jest.spyOn(chokidar, 'watch');
-    openSpy = jest.spyOn(fs.promises, 'open');
-    statSpy = jest.spyOn(fs.promises, 'stat');
-  });
 
   beforeEach(() => {
     // Reset all mocks
@@ -33,12 +29,15 @@ describe('ExcelWatcher Node', () => {
       close: jest.fn().mockResolvedValue(undefined),
     };
 
-    // Configure spies
-    watchSpy.mockReturnValue(mockWatcher as any);
-    openSpy.mockImplementation(() => Promise.resolve({
+    // Mock chokidar.watch using the mocked module
+    (chokidar.watch as jest.Mock).mockReturnValue(mockWatcher);
+
+    // Spy on fs functions
+    openSpy = jest.spyOn(fs.promises, 'open').mockImplementation(() => Promise.resolve({
       close: jest.fn().mockResolvedValue(undefined),
     } as any));
-    statSpy.mockResolvedValue({
+    
+    statSpy = jest.spyOn(fs.promises, 'stat').mockResolvedValue({
       size: 15420,
       mtime: new Date('2026-01-18T10:00:00.000Z'),
     } as any);
