@@ -648,6 +648,51 @@ npm run test:coverage
 
 ## Changelog
 
+### Version 1.0.1 (2026-01-21)
+
+**Content Mode Improvements** 🔧
+
+#### Fixes and Improvements
+
+**Snapshot Mechanism Optimization**
+- 🔧 Snapshot format upgrade: Added headers and timestamp fields
+- 🔧 Snapshots now saved as `{ data, headers, timestamp }` format
+- ✅ Backward compatible with old snapshot format (plain array)
+- 📝 Added snapshot file location and reset instructions in parameter descriptions
+
+**Primary Key Handling Enhancement**
+- 🔧 Improved primary key identification logic:
+  1. First try headers mapping (headers[primaryKeyColumn])
+  2. Then try column letter (row[primaryKeyColumn])
+  3. Finally fuzzy matching (startsWith)
+- 📊 Added warning messages when rows have no valid primary key
+- 🔍 Improved debug information showing primary key column to header mapping
+
+**Startup Logic Optimization**
+- ✅ Removed "delete snapshot on startup" design
+- 📌 Changed to preserve snapshots for continuous monitoring
+- 💡 Users can manually delete snapshot files to reset baseline
+- 📝 Clear prompt messages displayed on startup
+
+**Logging System Improvements**
+- 📊 Added detailed change detection logs (ADD/UPDATE/DELETE)
+- 💬 Improved clarity of status messages
+- 💡 Snapshot management tips provided on startup
+- 🔍 Display full snapshot file path
+
+**Documentation Updates**
+- 📖 Added "Content Mode not detecting changes" troubleshooting section
+- 📖 Detailed explanation of snapshot mechanism operation
+- 📖 Provided specific steps for snapshot reset
+- 📖 Updated parameter descriptions to include snapshot file information
+
+#### Testing
+- ✅ Updated all unit tests to support new snapshot format
+- ✅ All 42 tests passing (100% pass rate)
+- ✅ Tests cover add, update, delete, and mixed change scenarios
+
+---
+
 ### Version 1.0.0 (2026-01-18)
 
 **Initial Release** 🎉
