@@ -155,11 +155,11 @@ describe('ExcelWatcher Node - Content Mode Tests', () => {
   });
 
   describe('Output Data Structure - Content Mode', () => {
-    it('should document that content mode outputs include status field', () => {
+    it('should document that content mode outputs include _rowStatus field', () => {
       const detectChangesProp = excelWatcher.description.properties.find((p: any) => p.name === 'detectChanges');
       const options = (detectChangesProp as any)?.options;
       
-      // Verify all status types are defined
+      // Verify all _rowStatus types are defined
       expect(options.find((o: any) => o.value === 'add')).toBeDefined();
       expect(options.find((o: any) => o.value === 'update')).toBeDefined();
       expect(options.find((o: any) => o.value === 'delete')).toBeDefined();
@@ -244,7 +244,7 @@ describe('ExcelWatcher Node - Content Mode Tests', () => {
     it('should indicate content mode in output structure', () => {
       // Based on the implementation, content mode outputs should include:
       // - mode: 'content'
-      // - changes: array with status field
+      // - changes: array with _rowStatus field
       // - summary: statistics
       // - file_info: metadata
       
@@ -260,7 +260,7 @@ describe('ExcelWatcher Node - Content Mode Tests', () => {
       const options = (detectChangesProp as any)?.options;
       const values = options.map((o: any) => o.value);
       
-      // These are the status values that will appear in output
+      // These are the _rowStatus values that will appear in output
       expect(values).toContain('add');
       expect(values).toContain('update');
       expect(values).toContain('delete');

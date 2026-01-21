@@ -44,7 +44,7 @@ An n8n community node for monitoring Excel file changes with advanced stability 
 #### 內容監控模式（Content Mode）
 - ✅ **資料列追蹤**：監控單一 Excel 檔案的資料列變更
 - ✅ **變更偵測**：自動偵測新增、更新、刪除的資料列
-- ✅ **Status 欄位**：每筆變更資料自動加上 status 欄位（add/update/delete）
+- ✅ **_rowStatus 欄位**：每筆變更資料自動加上 _rowStatus 欄位（add/update/delete）
 - ✅ **自訂檢查間隔**：彈性設定 5-3600 秒的檢查頻率
 - ✅ **ExcelJS 整合**：使用 ExcelJS 精確讀取 .xlsx 檔案內容
 - ✅ **智能比對**：支援大小寫、空白處理等進階比對選項
@@ -300,7 +300,7 @@ docker run -it --rm \
 
 ### 內容監控模式輸出
 
-當偵測到資料列變更時，節點會輸出變更的資料列陣列，每列都包含 `status` 欄位：
+當偵測到資料列變更時，節點會輸出變更的資料列陣列，每列都包含 `_rowStatus` 欄位：
 
 ```json
 [
@@ -311,7 +311,7 @@ docker run -it --rm \
     "數量": "5",
     "金額": "150000",
     "狀態": "待處理",
-    "status": "add"
+    "_rowStatus": "add"
   },
   {
     "訂單編號": "ORD-2024-002",
@@ -320,7 +320,7 @@ docker run -it --rm \
     "數量": "2",
     "金額": "300000",
     "狀態": "已完成",
-    "status": "update"
+    "_rowStatus": "update"
   },
   {
     "訂單編號": "ORD-2024-003",
@@ -329,14 +329,14 @@ docker run -it --rm \
     "數量": "10",
     "金額": "50000",
     "狀態": "已取消",
-    "status": "delete"
+    "_rowStatus": "delete"
   }
 ]
 ```
 
-#### Status 欄位說明
+#### _rowStatus 欄位說明
 
-| Status 值 | 說明 |
+| _rowStatus 值 | 說明 |
 |----------|------|
 | `"add"` | 資料列為新增 |
 | `"update"` | 資料列已更新（內容有變更）|
@@ -344,8 +344,8 @@ docker run -it --rm \
 
 **特點：**
 - 每筆輸出都是完整的資料列，包含所有 Excel 欄位
-- 額外加上 `status` 欄位標示變更類型
-- 可直接在 n8n 中使用 `{{ $json.訂單編號 }}` 和 `{{ $json.status }}` 存取資料
+- 額外加上 `_rowStatus` 欄位標示變更類型
+- 可直接在 n8n 中使用 `{{ $json.訂單編號 }}` 和 `{{ $json._rowStatus }}` 存取資料
 
 ## 使用範例
 
@@ -459,7 +459,7 @@ docker run -it --rm \
       "name": "Switch by Status",
       "type": "n8n-nodes-base.switch",
       "parameters": {
-        "dataPropertyName": "status",
+        "dataPropertyName": "_rowStatus",
         "rules": {
           "values": [
             {"value": "add", "output": 0},
@@ -501,10 +501,10 @@ docker run -it --rm \
 // 在 Code 節點或表達式中
 訂單編號: {{ $json.訂單編號 }}
 客戶名稱: {{ $json.客戶名稱 }}
-變更類型: {{ $json.status }}
+變更類型: {{ $json._rowStatus }}
 
 // 判斷變更類型
-{{ $json.status === 'add' ? '新訂單' : $json.status === 'update' ? '訂單更新' : '訂單刪除' }}
+{{ $json._rowStatus === 'add' ? '新訂單' : $json._rowStatus === 'update' ? '訂單更新' : '訂單刪除' }}
 ```
 
 ## 台灣中小企業專屬功能
@@ -643,6 +643,28 @@ npm run test:coverage
 
 ## 更新日誌
 
+### 版本 1.0.2 (2026-01-21)
+
+**重要變更** ⚠️
+
+#### Breaking Change：狀態欄位更名
+
+**變更內容**
+- 🔄 Content Watcher 模式輸出的狀態欄位從 `status` 更名為 `_rowStatus`
+- 🎯 避免與 Excel 原有欄位名稱衝突（如：訂單狀態、員工狀態等）
+- ✨ 使用下劃線前綴明確標示這是系統添加的欄位
+- 🛡️ 降低欄位名稱衝突風險，提高節點可靠性
+
+**遷移指南**
+如果您已在使用 Content Watcher 模式，需要更新工作流程：
+- 將 `{{ $json.status }}` 改為 `{{ $json._rowStatus }}`
+- Switch 節點的 `dataPropertyName` 從 `"status"` 改為 `"_rowStatus"`
+- Code 節點中所有對 `item.json.status` 的引用改為 `item.json._rowStatus`
+
+**注意**：此變更僅影響 Content Watcher 模式，File Watcher 模式不受影響。
+
+---
+
 ### 版本 1.0.1 (2026-01-21)
 
 **內容監控模式改進** 🔧
@@ -708,7 +730,7 @@ npm run test:coverage
 **內容監控模式**
 - ✨ 單一檔案資料列變更監控
 - ✨ 自動偵測新增、更新、刪除的資料列
-- ✨ 每筆資料自動加上 status 欄位（add/update/delete）
+- ✨ 每筆資料自動加上 _rowStatus 欄位（add/update/delete）
 - ✨ 自訂檢查間隔（5-3600 秒）
 - ✨ 使用 ExcelJS 精確讀取 .xlsx 檔案
 - ✨ 智能比對選項（大小寫、空白處理）
@@ -753,7 +775,7 @@ npm run test:coverage
 **內容監控模式：**
 - 變更的資料列陣列
 - 每列包含所有 Excel 欄位
-- 額外的 status 欄位（add/update/delete）
+- 額外的 _rowStatus 欄位（add/update/delete）
 
 #### 測試
 - 50 個測試全部通過（100% 通過率）

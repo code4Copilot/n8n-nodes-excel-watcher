@@ -42,7 +42,7 @@ An n8n community node for monitoring Excel file changes with advanced stability 
 #### Content Monitoring Mode
 - ✅ **Row Tracking**: Monitor data row changes in a single Excel file
 - ✅ **Change Detection**: Automatically detect added, updated, and deleted rows
-- ✅ **Status Field**: Each changed row includes a status field (add/update/delete)
+- ✅ **_rowStatus Field**: Each changed row includes a _rowStatus field (add/update/delete)
 - ✅ **Custom Intervals**: Flexible check intervals from 5-3600 seconds
 - ✅ **ExcelJS Integration**: Accurate .xlsx file reading with ExcelJS
 - ✅ **Smart Comparison**: Advanced comparison options (case sensitivity, whitespace handling)
@@ -316,7 +316,7 @@ When a file change is detected, the node outputs the following JSON structure:
 
 ### Content Monitoring Mode Output
 
-When row changes are detected, the node outputs an array of changed rows, each with a `status` field:
+When row changes are detected, the node outputs an array of changed rows, each with a `_rowStatus` field:
 
 ```json
 [
@@ -327,7 +327,7 @@ When row changes are detected, the node outputs an array of changed rows, each w
     "Quantity": "5",
     "Amount": "150000",
     "Status": "Pending",
-    "status": "add"
+    "_rowStatus": "add"
   },
   {
     "Order ID": "ORD-2024-002",
@@ -336,7 +336,7 @@ When row changes are detected, the node outputs an array of changed rows, each w
     "Quantity": "2",
     "Amount": "300000",
     "Status": "Completed",
-    "status": "update"
+    "_rowStatus": "update"
   },
   {
     "Order ID": "ORD-2024-003",
@@ -345,14 +345,14 @@ When row changes are detected, the node outputs an array of changed rows, each w
     "Quantity": "10",
     "Amount": "50000",
     "Status": "Cancelled",
-    "status": "delete"
+    "_rowStatus": "delete"
   }
 ]
 ```
 
-#### Status Field Values
+#### _rowStatus Field Values
 
-| Status Value | Description |
+| _rowStatus Value | Description |
 |-------------|-------------|
 | `"add"` | Row was added |
 | `"update"` | Row was updated (content changed) |
@@ -360,8 +360,8 @@ When row changes are detected, the node outputs an array of changed rows, each w
 
 **Features:**
 - Each output is a complete data row with all Excel columns
-- Additional `status` field indicates change type
-- Direct access in n8n using `{{ $json.OrderID }}` and `{{ $json.status }}`
+- Additional `_rowStatus` field indicates change type
+- Direct access in n8n using `{{ $json.OrderID }}` and `{{ $json._rowStatus }}`
 
 ## Usage Examples
 
@@ -475,7 +475,7 @@ Monitor order Excel for row changes and send notifications:
       "name": "Switch by Status",
       "type": "n8n-nodes-base.switch",
       "parameters": {
-        "dataPropertyName": "status",
+        "dataPropertyName": "_rowStatus",
         "rules": {
           "values": [
             {"value": "add", "output": 0},
@@ -517,10 +517,10 @@ Access changed data in n8n workflows:
 // In Code node or expressions
 Order ID: {{ $json["Order ID"] }}
 Customer: {{ $json.Customer }}
-Change Type: {{ $json.status }}
+Change Type: {{ $json._rowStatus }}
 
 // Determine change type
-{{ $json.status === 'add' ? 'New Order' : $json.status === 'update' ? 'Order Updated' : 'Order Deleted' }}
+{{ $json._rowStatus === 'add' ? 'New Order' : $json._rowStatus === 'update' ? 'Order Updated' : 'Order Deleted' }}
 ```
 
 ## Taiwan SME Specific Features
@@ -648,6 +648,28 @@ npm run test:coverage
 
 ## Changelog
 
+### Version 1.0.2 (2026-01-21)
+
+**Important Changes** ⚠️
+
+#### Breaking Change: Status Field Renamed
+
+**Changes**
+- 🔄 Content Watcher mode output status field renamed from `status` to `_rowStatus`
+- 🎯 Avoids conflicts with existing Excel column names (e.g., Order Status, Employee Status)
+- ✨ Underscore prefix clearly indicates this is a system-added field
+- 🛡️ Reduces field name collision risk, improves node reliability
+
+**Migration Guide**
+If you're already using Content Watcher mode, you need to update your workflows:
+- Change `{{ $json.status }}` to `{{ $json._rowStatus }}`
+- Switch node's `dataPropertyName` from `"status"` to `"_rowStatus"`
+- Update all references to `item.json.status` to `item.json._rowStatus` in Code nodes
+
+**Note**: This change only affects Content Watcher mode. File Watcher mode is not affected.
+
+---
+
 ### Version 1.0.1 (2026-01-21)
 
 **Content Mode Improvements** 🔧
@@ -713,7 +735,7 @@ npm run test:coverage
 **Content Monitoring Mode**
 - ✨ Single file data row change monitoring
 - ✨ Automatic detection of added, updated, and deleted rows
-- ✨ Each row automatically includes status field (add/update/delete)
+- ✨ Each row automatically includes _rowStatus field (add/update/delete)
 - ✨ Custom check intervals (5-3600 seconds)
 - ✨ Accurate .xlsx file reading with ExcelJS
 - ✨ Smart comparison options (case sensitivity, whitespace handling)
@@ -758,7 +780,7 @@ npm run test:coverage
 **Content Monitoring Mode:**
 - Array of changed rows
 - Each row contains all Excel columns
-- Additional status field (add/update/delete)
+- Additional _rowStatus field (add/update/delete)
 
 #### Testing
 - 50 tests all passing (100% pass rate)

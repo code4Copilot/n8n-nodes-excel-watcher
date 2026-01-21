@@ -654,7 +654,7 @@ export class ExcelWatcher implements INodeType {
               console.log(`✓ ADD detected - Key: "${key}"`);
               changes.push({
                 ...newRow,
-                status: 'add',
+                _rowStatus: 'add',
               });
             }
           }
@@ -672,7 +672,7 @@ export class ExcelWatcher implements INodeType {
                 console.log(`✓ UPDATE detected - Key: "${key}"`);
                 changes.push({
                   ...newRow,
-                  status: 'update',
+                  _rowStatus: 'update',
                 });
               }
             }
@@ -686,7 +686,7 @@ export class ExcelWatcher implements INodeType {
               console.log(`✓ DELETE detected - Key: "${key}"`);
               changes.push({
                 ...oldRow,
-                status: 'delete',
+                _rowStatus: 'delete',
               });
             }
           }
@@ -748,7 +748,7 @@ export class ExcelWatcher implements INodeType {
 
             if (changes.length > 0) {
               console.log(`🔔 Emitting ${changes.length} change(s) to workflow`);
-              // Emit each changed row directly with status field
+              // Emit each changed row directly with _rowStatus field
               this.emit([this.helpers.returnJsonArray(changes)]);
             } else {
               console.log(`✓ No changes detected`);
