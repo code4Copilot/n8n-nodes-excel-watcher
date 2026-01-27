@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-01-27
+
+### Added
+- **檔案與工作表驗證**：Content Mode 啟動時自動驗證 Excel 檔案和工作表是否存在
+  - 檔案不存在時會立即停止工作流程並顯示清楚的錯誤訊息
+  - 工作表不存在時會顯示所有可用的工作表名稱，幫助用戶快速定位問題
+  - 避免無效的監測流程繼續執行，節省系統資源
+- 新增完整的驗證測試套件 (`ExcelWatcher.validation.test.ts`)
+  - 涵蓋檔案存在性驗證
+  - 涵蓋工作表存在性驗證
+  - 涵蓋初始基準線建立失敗處理
+  - 涵蓋錯誤訊息品質檢查
+
+### Changed
+- 改進 Content Mode 的錯誤處理機制
+  - 初始基準線建立失敗時會拋出錯誤停止執行（之前只記錄錯誤）
+  - 錯誤訊息更加清晰明確，包含具體的檔案路徑和可用工作表資訊
+
+### Fixed
+- 修正 Excel 檔案或工作表不存在時仍繼續執行監測的問題
+- 改善啟動階段的錯誤反饋，讓用戶能立即發現配置問題
+
 ## [1.0.2] - 2026-01-21
 
 ### Changed

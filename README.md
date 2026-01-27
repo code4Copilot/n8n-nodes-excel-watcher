@@ -46,6 +46,7 @@ An n8n community node for monitoring Excel file changes with advanced stability 
 - ✅ **Custom Intervals**: Flexible check intervals from 5-3600 seconds
 - ✅ **ExcelJS Integration**: Accurate .xlsx file reading with ExcelJS
 - ✅ **Smart Comparison**: Advanced comparison options (case sensitivity, whitespace handling)
+- ✅ **Startup Validation**: Auto-validate file and sheet existence to prevent invalid monitoring (v1.0.3+)
 
 ### Taiwan SME Optimized / 台灣中小企業優化
 
@@ -584,6 +585,41 @@ Polling mode ensures triggers work even when network file system events are unre
 **Cause**: File still being written or accessed by another application.
 
 **Solution**: Enable `Wait For File Access` in Advanced Settings.
+
+### Issue: Workflow fails to start (Content Mode)
+
+**v1.0.3 New Validation Feature**
+
+#### Error: "Excel file not found"
+
+**Cause**: The specified Excel file does not exist.
+
+**Solution**:
+1. Check the "File Path" setting is correct
+2. Verify the file actually exists at that path
+3. Confirm n8n process has permissions to access that path
+4. Verify path format is correct (Windows: `C:\folder\file.xlsx`, UNC: `\\NAS\share\file.xlsx`)
+
+#### Error: "Sheet 'xxx' not found"
+
+**Cause**: The specified sheet name does not exist in the workbook.
+
+**Solution**:
+1. Check sheet name spelling (case-sensitive)
+2. Open the Excel file to confirm the sheet name
+3. The error message lists all available sheet names - use one of those
+4. To monitor the first sheet, leave the sheet name blank
+
+#### Error: "No worksheets found in workbook"
+
+**Cause**: The Excel file contains no worksheets.
+
+**Solution**:
+1. Confirm the Excel file is not empty or corrupted
+2. Open the file in Excel to verify at least one worksheet exists
+3. If the file is corrupted, try repairing it or use a backup
+
+**Note**: Starting from v1.0.3, Content Mode automatically validates file and sheet existence at startup, ensuring monitoring only begins when properly configured.
 
 ## Development
 

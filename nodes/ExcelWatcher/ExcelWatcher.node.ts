@@ -776,6 +776,44 @@ export class ExcelWatcher implements INodeType {
       console.log(`Snapshot Path: ${snapshotPath}`);
       console.log(`💡 Tip: Delete snapshot file to reset monitoring baseline`);
 
+      // ===== 驗證檔案和工作表存在 =====
+      // 檢查檔案是否存在
+      if (!fs.existsSync(filePath)) {
+        const errorMsg = `Excel file not found: ${filePath}`;
+        console.error(`❌ ${errorMsg}`);
+        throw new Error(errorMsg);
+      }
+
+      // 檢查工作表是否存在
+      try {
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(filePath);
+        
+        let worksheet: ExcelJS.Worksheet | undefined;
+        if (sheetName) {
+          worksheet = workbook.getWorksheet(sheetName);
+          if (!worksheet) {
+            const errorMsg = `Sheet "${sheetName}" not found in workbook. Available sheets: ${workbook.worksheets.map(ws => ws.name).join(', ')}`;
+            console.error(`❌ ${errorMsg}`);
+            throw new Error(errorMsg);
+          }
+        } else {
+          worksheet = workbook.worksheets[0];
+          if (!worksheet) {
+            const errorMsg = 'No worksheets found in workbook';
+            console.error(`❌ ${errorMsg}`);
+            throw new Error(errorMsg);
+          }
+        }
+        console.log(`✓ File and sheet validation passed`);
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('not found')) {
+          throw error; // 重新拋出我們自己的錯誤訊息
+        }
+        console.error(`❌ Failed to validate Excel file:`, error);
+        throw new Error(`Failed to open Excel file: ${(error as Error).message}`);
+      }
+
       // 檢查快照是否存在
       const snapshotExists = fs.existsSync(snapshotPath);
       console.log(`Snapshot exists: ${snapshotExists}`);
@@ -791,6 +829,7 @@ export class ExcelWatcher implements INodeType {
           console.log(`✓ Initial baseline created with ${result.data.length} rows`);
         } catch (error) {
           console.error(`❌ Failed to create initial baseline:`, error);
+          throw error; // 建立基準線失敗應該停止執行
         }
       } else {
         console.log(`✓ Existing snapshot found - will continue monitoring from previous state`);
