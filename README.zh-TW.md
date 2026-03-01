@@ -48,7 +48,9 @@ An n8n community node for monitoring Excel file changes with advanced stability 
 - ✅ **自訂檢查間隔**：彈性設定 5-3600 秒的檢查頻率
 - ✅ **ExcelJS 整合**：使用 ExcelJS 精確讀取 .xlsx 檔案內容
 - ✅ **智能比對**：支援大小寫、空白處理等進階比對選項
-- ✅ **啟動驗證**：自動驗證檔案和工作表存在性，避免無效監控（v1.0.3+）
+- ✅ **寬表格支援**：支援超過 26 欄的 Excel 檔案（A-Z, AA-ZZ, AAA...）（v1.0.4+）
+- ✅ **立即啟動**：啟動時立即建立基準快照，無需等待（v1.0.4+）
+- ✅ **併發保護**：防止檢查重疊執行的 Race Condition（v1.0.4+）
 
 ### 台灣中小企業優化
 

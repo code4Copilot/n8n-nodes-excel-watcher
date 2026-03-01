@@ -338,10 +338,10 @@ export class ExcelWatcher implements INodeType {
       const stabilityTime = this.getNodeParameter('stabilityTime') as number;
       const advancedSettings = this.getNodeParameter('advancedSettings') as IDataObject;
 
-      const usePolling = advancedSettings.usePolling as boolean || false;
-      const pollingInterval = advancedSettings.pollingInterval as number || 5;
-      const waitForAccess = advancedSettings.waitForAccess as boolean ?? true;
-      const recursive = advancedSettings.recursive as boolean || false;
+      const usePolling = (advancedSettings.usePolling as boolean) ?? false;
+      const pollingInterval = (advancedSettings.pollingInterval as number) ?? 5;
+      const waitForAccess = (advancedSettings.waitForAccess as boolean) ?? true;
+      const recursive = (advancedSettings.recursive as boolean) ?? false;
 
       // Build file filter glob patterns
       const patterns = filePattern.split(',').map(p => p.trim());
@@ -452,13 +452,24 @@ export class ExcelWatcher implements INodeType {
       const headerRow = this.getNodeParameter('headerRow') as number;
       const advancedSettings = this.getNodeParameter('advancedSettings') as IDataObject;
 
-      const waitForAccess = advancedSettings.waitForAccess as boolean ?? true;
-      const ignoreEmptyRows = advancedSettings.ignoreEmptyRows as boolean ?? true;
-      const caseSensitive = advancedSettings.caseSensitive as boolean || false;
-      const trimWhitespace = advancedSettings.trimWhitespace as boolean ?? true;
+      const waitForAccess = (advancedSettings.waitForAccess as boolean) ?? true;
+      const ignoreEmptyRows = (advancedSettings.ignoreEmptyRows as boolean) ?? true;
+      const caseSensitive = (advancedSettings.caseSensitive as boolean) ?? false;
+      const trimWhitespace = (advancedSettings.trimWhitespace as boolean) ?? true;
 
       // Snapshot file path (stored next to the Excel file)
       const snapshotPath = `${filePath}.snapshot.json`;
+
+      // Convert column number to Excel column letter (A, B, ..., Z, AA, AB, ...)
+      const getColumnLetter = (colNumber: number): string => {
+        let letter = '';
+        while (colNumber > 0) {
+          const remainder = (colNumber - 1) % 26;
+          letter = String.fromCharCode(65 + remainder) + letter;
+          colNumber = Math.floor((colNumber - 1) / 26);
+        }
+        return letter;
+      };
 
       // Normalize value for comparison
       const normalizeValue = (value: any): any => {
@@ -502,7 +513,7 @@ export class ExcelWatcher implements INodeType {
           const headers: { [key: string]: string } = {};
           
           headerRowData.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-            const columnLetter = String.fromCharCode(64 + colNumber); // A, B, C, ...
+            const columnLetter = getColumnLetter(colNumber); // A, B, C, ..., Z, AA, AB, ...
             const headerValue = cell.value?.toString() || columnLetter;
             headers[columnLetter] = headerValue;
           });
@@ -518,7 +529,7 @@ export class ExcelWatcher implements INodeType {
             let hasData = false;
             
             row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-              const columnLetter = String.fromCharCode(64 + colNumber);
+              const columnLetter = getColumnLetter(colNumber);
               const headerName = headers[columnLetter] || columnLetter;
               
               let cellValue: any = cell.value;
@@ -612,17 +623,7 @@ export class ExcelWatcher implements INodeType {
           return normalizeValue(row[primaryKeyColumn]);
         }
         
-        // 嘗試模糊匹配 (以欄位字母開頭的鍵)
-        const keys = Object.keys(row);
-        for (const key of keys) {
-          if (key.startsWith(primaryKeyColumn) || key === primaryKeyColumn) {
-            const value = row[key];
-            if (value !== undefined && value !== null && value !== '') {
-              return normalizeValue(value);
-            }
-          }
-        }
-        
+        // 無法取得主鍵值
         return null;
       };
 
@@ -749,7 +750,7 @@ export class ExcelWatcher implements INodeType {
           console.log(`Current file has ${currentData.length} rows`);
           console.log(`Primary key column: ${primaryKeyColumn} -> Header: "${headers[primaryKeyColumn] || 'N/A'}"`);
 
-          if (oldSnapshot !== null && oldSnapshot.data.length >= 0) {
+          if (oldSnapshot !== null) {
             console.log(`Previous snapshot has ${oldSnapshot.data.length} rows`);
             
             // Compare with previous snapshot to detect changes
@@ -785,12 +786,26 @@ export class ExcelWatcher implements INodeType {
       console.log(`Snapshot Path: ${snapshotPath}`);
       console.log(`💡 Tip: Delete snapshot file to reset monitoring baseline`);
 
-      // 立即執行一次檢查，建立基準快照（如果不存在）
-      await checkForChanges();
+      // Race condition prevention flag
+      let isChecking = false;
 
-      // Set up interval check
+      // 立即執行一次檢查，建立基準快照（如果不存在）
+      isChecking = true;
+      await checkForChanges();
+      isChecking = false;
+
+      // Set up interval check with race condition prevention
       const intervalId = setInterval(async () => {
-        await checkForChanges();
+        if (isChecking) {
+          console.log(`⏭ Skipping check - previous check still in progress`);
+          return;
+        }
+        isChecking = true;
+        try {
+          await checkForChanges();
+        } finally {
+          isChecking = false;
+        }
       }, checkInterval * 1000);
 
       // 後續定時檢查

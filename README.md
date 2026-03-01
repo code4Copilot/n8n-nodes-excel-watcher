@@ -46,7 +46,9 @@ An n8n community node for monitoring Excel file changes with advanced stability 
 - ✅ **Custom Intervals**: Flexible check intervals from 5-3600 seconds
 - ✅ **ExcelJS Integration**: Accurate .xlsx file reading with ExcelJS
 - ✅ **Smart Comparison**: Advanced comparison options (case sensitivity, whitespace handling)
-- ✅ **Startup Validation**: Auto-validate file and sheet existence to prevent invalid monitoring (v1.0.3+)
+- ✅ **Wide Table Support**: Support for Excel files with more than 26 columns (A-Z, AA-ZZ, AAA...) (v1.0.4+)
+- ✅ **Instant Startup**: Create baseline snapshot immediately on startup (v1.0.4+)
+- ✅ **Concurrency Protection**: Prevent race conditions from overlapping checks (v1.0.4+)
 
 ### Taiwan SME Optimized / 台灣中小企業優化
 
