@@ -3,7 +3,31 @@ import ExcelJS from 'exceljs';
 import * as fs from 'fs';
 import * as path from 'path';
 
-describe('ExcelWatcher Node - File and Sheet Validation Tests', () => {
+/**
+ * ============================================================
+ * IMPORTANT: 大部分啟動驗證測試已被移除
+ * ============================================================
+ * 
+ * 原因：節點已改為延遲驗證機制，不再在 trigger() 啟動時驗證檔案和工作表存在性。
+ * 這是為了解決「無法拖拽/雙擊新增節點」的問題。
+ * 
+ * 驗證邏輯已移至 checkForChanges() 執行時，在實際需要讀取檔案時才進行。
+ * 
+ * 保留的測試：
+ * - 基本功能測試（快照建立、監控啟動）
+ * 
+ * 已移除的測試類型：
+ * - File Existence Validation (啟動時檔案不存在應拋錯)
+ * - Sheet Existence Validation (啟動時工作表不存在應拋錯)
+ * - Combined Validation (驗證順序)
+ * - Error Message Quality (錯誤訊息格式)
+ * 
+ * 如需測試這些驗證邏輯，應該測試 checkForChanges() 的行為，
+ * 而非測試 trigger() 啟動時的行為。
+ * ============================================================
+ */
+
+describe('ExcelWatcher Node - Basic Functionality Tests', () => {
   const testDir = path.join(__dirname, 'test-validation-data');
   const testFile = path.join(testDir, 'test-validation.xlsx');
   const snapshotFile = `${testFile}.snapshot.json`;
@@ -102,7 +126,7 @@ describe('ExcelWatcher Node - File and Sheet Validation Tests', () => {
     } as any;
   };
 
-  describe('File Existence Validation', () => {
+  describe.skip('File Existence Validation - DEPRECATED (啟動時不再驗證)', () => {
     it('should throw error when Excel file does not exist', async () => {
       const mockFunctions = createMockTriggerFunctions(nonExistentFile);
 
@@ -144,7 +168,7 @@ describe('ExcelWatcher Node - File and Sheet Validation Tests', () => {
     });
   });
 
-  describe('Sheet Existence Validation', () => {
+  describe.skip('Sheet Existence Validation - DEPRECATED (啟動時不再驗證)', () => {
     it('should throw error when specified sheet does not exist', async () => {
       const testData = [
         { ID: '001', Name: 'Alice', Status: 'Active' },
@@ -268,7 +292,7 @@ describe('ExcelWatcher Node - File and Sheet Validation Tests', () => {
       await new Promise(resolve => setTimeout(resolve, 100));
     });
 
-    it('should throw error if initial baseline creation fails due to invalid file', async () => {
+    it.skip('should throw error if initial baseline creation fails due to invalid file - DEPRECATED (啟動時不再拋錯)', async () => {
       const mockFunctions = createMockTriggerFunctions(nonExistentFile);
 
       await expect(async () => {
@@ -279,7 +303,7 @@ describe('ExcelWatcher Node - File and Sheet Validation Tests', () => {
       expect(fs.existsSync(snapshotFile)).toBe(false);
     });
 
-    it('should not start monitoring if file becomes invalid after validation', async () => {
+    it.skip('should not start monitoring if file becomes invalid after validation - DEPRECATED (無驗證階段)', async () => {
       const testData = [
         { ID: '001', Name: 'Alice', Status: 'Active' },
       ];
@@ -304,7 +328,7 @@ describe('ExcelWatcher Node - File and Sheet Validation Tests', () => {
     }, 10000); // Increase timeout
   });
 
-  describe('Combined File and Sheet Validation', () => {
+  describe.skip('Combined File and Sheet Validation - DEPRECATED (啟動時不再驗證)', () => {
     it('should validate both file and sheet before starting monitoring', async () => {
       // File doesn't exist
       const mockFunctions = createMockTriggerFunctions(nonExistentFile, 'SomeSheet');
@@ -363,7 +387,7 @@ describe('ExcelWatcher Node - File and Sheet Validation Tests', () => {
     }, 10000); // Increase timeout
   });
 
-  describe('Error Message Quality', () => {
+  describe.skip('Error Message Quality - DEPRECATED (啟動時不再拋出錯誤)', () => {
     it('should provide clear error message for missing file', async () => {
       const mockFunctions = createMockTriggerFunctions(nonExistentFile);
 

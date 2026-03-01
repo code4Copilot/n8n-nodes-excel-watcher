@@ -18,9 +18,18 @@ export class ExcelWatcher implements INodeType {
     icon: 'file:excel.svg',
     group: ['trigger'],
     version: 1,
+    subtitle: '={{$parameter["mode"] === "file" ? "Watch Files" : "Watch Content"}}',
     description: 'Monitor Excel file changes and content changes',
     defaults: {
       name: 'Excel Watcher',
+    },
+    triggerPanel: {
+      header: '',
+      executionsHelp: {
+        inactive: 'This workflow is currently inactive. Activate it to have it trigger on Excel file changes.',
+        active: 'This workflow is active and will trigger when Excel file changes are detected.',
+      },
+      activationHint: 'Once activated, this workflow will automatically trigger when Excel file changes occur.',
     },
     inputs: [],
     outputs: ['main'],
@@ -766,7 +775,7 @@ export class ExcelWatcher implements INodeType {
         }
       };
 
-      // ===== 啟動邏輯 - 關鍵修改點 =====
+      // ===== 啟動邏輯 =====
       console.log(`=== Excel Content Watcher Started ===`);
       console.log(`File: ${filePath}`);
       console.log(`Sheet: ${sheetName || '(first sheet)'}`);
@@ -776,73 +785,16 @@ export class ExcelWatcher implements INodeType {
       console.log(`Snapshot Path: ${snapshotPath}`);
       console.log(`💡 Tip: Delete snapshot file to reset monitoring baseline`);
 
-      // ===== 驗證檔案和工作表存在 =====
-      // 檢查檔案是否存在
-      if (!fs.existsSync(filePath)) {
-        const errorMsg = `Excel file not found: ${filePath}`;
-        console.error(`❌ ${errorMsg}`);
-        throw new Error(errorMsg);
-      }
-
-      // 檢查工作表是否存在
-      try {
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.readFile(filePath);
-        
-        let worksheet: ExcelJS.Worksheet | undefined;
-        if (sheetName) {
-          worksheet = workbook.getWorksheet(sheetName);
-          if (!worksheet) {
-            const errorMsg = `Sheet "${sheetName}" not found in workbook. Available sheets: ${workbook.worksheets.map(ws => ws.name).join(', ')}`;
-            console.error(`❌ ${errorMsg}`);
-            throw new Error(errorMsg);
-          }
-        } else {
-          worksheet = workbook.worksheets[0];
-          if (!worksheet) {
-            const errorMsg = 'No worksheets found in workbook';
-            console.error(`❌ ${errorMsg}`);
-            throw new Error(errorMsg);
-          }
-        }
-        console.log(`✓ File and sheet validation passed`);
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('not found')) {
-          throw error; // 重新拋出我們自己的錯誤訊息
-        }
-        console.error(`❌ Failed to validate Excel file:`, error);
-        throw new Error(`Failed to open Excel file: ${(error as Error).message}`);
-      }
-
-      // 檢查快照是否存在
-      const snapshotExists = fs.existsSync(snapshotPath);
-      console.log(`Snapshot exists: ${snapshotExists}`);
-
-      if (!snapshotExists) {
-        // 如果沒有快照,立即建立基準線
-        console.log(`⚡ No snapshot found - creating initial baseline immediately...`);
-        console.log(`  This establishes the current state as the monitoring baseline`);
-        console.log(`  All future changes will be detected from this point`);
-        try {
-          const result = await readExcelFile();
-          await saveSnapshot(result.data, result.headers);
-          console.log(`✓ Initial baseline created with ${result.data.length} rows`);
-        } catch (error) {
-          console.error(`❌ Failed to create initial baseline:`, error);
-          throw error; // 建立基準線失敗應該停止執行
-        }
-      } else {
-        console.log(`✓ Existing snapshot found - will continue monitoring from previous state`);
-        console.log(`  Delete ${snapshotPath} to reset baseline`);
-      }
+      // 立即執行一次檢查，建立基準快照（如果不存在）
+      await checkForChanges();
 
       // Set up interval check
       const intervalId = setInterval(async () => {
         await checkForChanges();
       }, checkInterval * 1000);
 
-      // 首次定時檢查將在 checkInterval 秒後執行
-      console.log(`⏰ First check scheduled in ${checkInterval} seconds`);
+      // 後續定時檢查
+      console.log(`⏰ Next check scheduled in ${checkInterval} seconds`);
       console.log(`=====================================`);
 
       // Cleanup function
